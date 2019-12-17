@@ -1,0 +1,11 @@
+<AssignMessage name='AM-KeyData'>
+  <AssignVariable>
+    <Name>private.encodedkey</Name>
+    <!-- VerySecretPassphraseWillBeEncoded encoded in base64 -->
+    <Template>VmVyeVNlY3JldFBhc3NwaHJhc2VXaWxsQmVFbmNvZGVk</Template>
+  </AssignVariable>
+  <AssignVariable>
+    <Name>encodedkey_name</Name>
+    <Value>key1</Value>
+  </AssignVariable>
+</AssignMessage>

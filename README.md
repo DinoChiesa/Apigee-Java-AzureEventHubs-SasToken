@@ -35,7 +35,7 @@ Here's an example policy configuration:
     <Property name="key-name">{encodedkey_name}</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.azureeventhubs.SasCallout</ClassName>
-  <ResourceURL>java://apigee-azure-eventhubs-sas-callout-20191217.jar</ResourceURL>
+  <ResourceURL>java://apigee-azure-eventhubs-sas-callout-20191218.jar</ResourceURL>
 </JavaCallout>
 ```
 

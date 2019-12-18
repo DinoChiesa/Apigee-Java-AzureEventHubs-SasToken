@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.apigee.callout</groupId>
   <artifactId>apigee-azure-eventhubs-sas-callout</artifactId>
-  <version>20191217</version>
+  <version>20191218</version>
   <name>AzureEventHubsSasCallout</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>

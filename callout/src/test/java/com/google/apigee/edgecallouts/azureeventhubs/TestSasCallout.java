@@ -71,7 +71,7 @@ public class TestSasCallout {
   @Test()
   public void noKey() {
     Map<String,Object> m = new HashMap<String,Object>();
-    m.put("resource-uri", "http://contoso.servicebus.windows.net/");
+    m.put("resource-uri", "contoso.servicebus.windows.net/");
     SasCallout callout = new SasCallout(m);
     ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
 
@@ -85,7 +85,7 @@ public class TestSasCallout {
   public void noKeyName() {
     Map<String,Object> m = new HashMap<String,Object>();
     m.put("key", "A3AB6FEC-972B-4F5D-B99F-9DC5AAF83698-390AB533-9D76-4351-AEDD-020EC3057A11");
-    m.put("resource-uri", "http://contoso.servicebus.windows.net/");
+    m.put("resource-uri", "contoso.servicebus.windows.net/");
     SasCallout callout = new SasCallout(m);
     ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
 
@@ -100,7 +100,7 @@ public class TestSasCallout {
     Map<String,Object> m = new HashMap<String,Object>();
     m.put("key", "A3AB6FEC-972B-4F5D-B99F-9DC5AAF83698-390AB533-9D76-4351-AEDD-020EC3057A11");
     m.put("key-name", "key1");
-    m.put("resource-uri", "http://contoso.servicebus.windows.net/");
+    m.put("resource-uri", "contoso.servicebus.windows.net/");
     SasCallout callout = new SasCallout(m);
     ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
 
@@ -117,7 +117,7 @@ public class TestSasCallout {
     m.put("key-name", "key1");
     m.put("expiry", "7d");
     m.put("debug", "true");
-    m.put("resource-uri", "http://contoso.servicebus.windows.net/");
+    m.put("resource-uri", "contoso.servicebus.windows.net/");
     SasCallout callout = new SasCallout(m);
     ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
 
@@ -132,12 +132,11 @@ public class TestSasCallout {
   @Test()
   public void good2() {
     Map<String,Object> m = new HashMap<String,Object>();
-    m.put("key", "000102030405060708090A0B0C0D0E0F10111213141516171819");
-    m.put("key-encoding", "base16");
+    m.put("key", "Z1HrZzMnicrAJcxXpyEIieys1qNLGVVuR9mDL4U7mCE=");
     m.put("debug", "true");
-    m.put("key-name", "key2");
+    m.put("key-name", "default");
     m.put("expiry", "1d");
-    m.put("resource-uri", "http://contoso.servicebus.windows.net/");
+    m.put("resource-uri", "sas-test.servicebus.windows.net/sample");
     SasCallout callout = new SasCallout(m);
     ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
 
@@ -147,5 +146,28 @@ public class TestSasCallout {
     Assert.assertEquals(result, ExecutionResult.SUCCESS);
     Assert.assertNull(error);
     Assert.assertNotNull(token);
+  }
+
+  @Test()
+  public void goodKnownSig() {
+    String expectedToken = "SharedAccessSignature sr=sas-test.servicebus.windows.net%2Fsample&sig=sO2NhIxteAcFwiF0lV6FEJD%2BUR8lHCOZy5y3TG7IMHM%3D&se=1577124641&skn=default";
+    Map<String,Object> m = new HashMap<String,Object>();
+    m.put("key", "Z1HrZzMnicrAJcxXpyEIieys1qNLGVVuR9mDL4U7mCE=");
+
+    m.put("debug", "true");
+    m.put("key-name", "default");
+    m.put("expiry", "7d");
+    m.put("reference-time", "1576519841"); // without this, the policy uses "now"
+    m.put("resource-uri", "sas-test.servicebus.windows.net/sample");
+    SasCallout callout = new SasCallout(m);
+    ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
+
+    String error = msgCtxt.getVariable("sas.error");
+    String token = msgCtxt.getVariable("sas.token");
+
+    Assert.assertEquals(result, ExecutionResult.SUCCESS);
+    Assert.assertNull(error);
+    Assert.assertNotNull(token);
+    Assert.assertEquals(token, expectedToken);
   }
 }

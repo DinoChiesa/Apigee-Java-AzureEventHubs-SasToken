@@ -63,9 +63,19 @@ public class SasCallout extends CalloutBase implements Execution {
     Long durationInMilliseconds = TimeResolver.resolveExpression(lifetimeString);
     if (durationInMilliseconds < 0L) throw new IllegalStateException("invalid expiry.");
     int tokenLifetime = ((Long) (durationInMilliseconds / 1000L)).intValue();
-    Instant now = Instant.now();
-    Instant expiry = now.plus(tokenLifetime, ChronoUnit.SECONDS);
-    return (int) (expiry.getEpochSecond());
+
+    String explicitReferenceTime = (String) getSimpleOptionalProperty("reference-time", msgCtxt);
+    Instant referenceTime = Instant.now();
+
+    if (explicitReferenceTime != null) {
+      int seconds = Integer.parseInt(explicitReferenceTime);
+      if (seconds < 0)throw new IllegalStateException("invalid expiry.");
+      referenceTime = Instant.ofEpochSecond(seconds );
+    }
+    Instant expiry = referenceTime.plus(tokenLifetime, ChronoUnit.SECONDS);
+    int expiryEpochSecond = (int) (expiry.getEpochSecond());
+    msgCtxt.setVariable(varName("expiry-epoch-second"), Integer.toString(expiryEpochSecond));
+    return expiryEpochSecond;
   }
 
   private byte[] decodeString(String s, EncodingType decodingKind) throws Exception {

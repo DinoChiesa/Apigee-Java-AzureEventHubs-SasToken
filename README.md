@@ -32,26 +32,71 @@ Here's an example policy configuration:
     <Property name="resource-uri">contoso.servicebus.windows.net/hub1</Property>
     <Property name="expiry">7d</Property>
     <Property name="key">{private.shared_access_key}</Property>
-    <Property name="key-name">{encodedkey_name}</Property>
+    <Property name="key-name">{shared_access_key_name}</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.azureeventhubs.SasCallout</ClassName>
   <ResourceURL>java://apigee-azure-eventhubs-sas-callout-20191218.jar</ResourceURL>
 </JavaCallout>
 ```
 
+The key is the shared access key" provided by Azure, and typically looks something like this:
+`B1OrZzY26crAJcxXpyEIaqbs7qNLGWXuR9mDL4U7mC4=`
+
+The output is emitted into a context variable `sas.token`.  You can then use
+this token to build an authorization header appropriate for your eventhub
+service, like this:
+
+```
+<AssignMessage name='AM-1'>
+  <Set>
+    <Headers>
+      <Header name='Authorization'>{sas.token}</Header>
+      ...
+    </Headers>
+    <Payload contentType='application/json'> ... </Payload>
+    <Verb>POST</Verb>
+    <Path>/foo/bar</Path>
+  </Set>
+  ...
+</AssignMessage>
+```
+
+
 ## Policy Properties
 
-| property name    | description |
-|------------------|--------------|
-| `key`            | required. The string representing the shared key. |
-| `key-encoding`   | optional. One of: {`hex`, `base16`, `base64`, `none`}. It tells the policy how to decode the key from the given key string. base16 is an alias for hex. The default is "none". |
-| `key-name`       | required. The name of the shared key. |
-| `resource-uri`   | required. The URI to sign.  Not clear whether this should include the scheme (http or https) or not. It seems to work either way. |
-| `expiry`         | required. The expiry interval, expressed as a relative time. An integer followed by a letter {s,m,h,d}: 7d = 7 days. 5h = 5 hours. |
-| `reference-time` | optional. An epoch-second value to use in place of "now" for computing the absolute expiry. |
+| property name    | description                                                                                                                              |
+|------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| `key`            | required. The string representing the shared key.                                                                                        |
+| `key-encoding`   | optional. One of: {`hex`, `base16`, `base64`, `none`}. This affects how the policy decodes the key from the key string. base16 is an alias for hex. The default is "none". |
+| `key-name`       | required. The name of the shared key.                                                                                                    |
+| `resource-uri`   | required. The URI to sign. It's  not clear to me whether this URI should include the scheme (https) or not. It seems to work without it. |
+| `expiry`         | required. The expiry interval, expressed as a relative time. An integer followed by a letter {s,m,h,d}: 7d = 7 days. 5h = 5 hours.       |
+| `reference-time` | optional. An epoch-second value to use in place of "now" for computing the absolute expiry.                                              |
 
+
+## Notes
+
+One thing I noticed: the signature generated from C# or Powershell code will be
+different than the signature generated from this Java callout. In fact, for a
+given combination of {uri, expiry, and key}, the signature produces by this Java
+callout matches that produced by the JavaScript and the Java code [on
+Microsoft's
+website](https://docs.microsoft.com/en-us/azure/event-hubs/authenticate-shared-access-signature). But
+the signature generated from C# or Powershell will be different.
+
+The reason for the difference: URI
+encoding in nodejs and Java produces a %2F (uppercase F) to encode the slash
+character, while .NET (C#, Powershell, etc) uses %2f (lowercase f). The RFC 3986
+says these encodings are equivalent, and they are treated as equivalent by
+EventHub. Both signatures are valid.
+
+But the signature from C# or Powershell will be different because the byte encoding is
+different for that one character. Both are valid.
 
 ## Building
+
+You don't need to build the code to use it. If you like you can rebuild with
+this command:
 
 ```
 mvn clean package

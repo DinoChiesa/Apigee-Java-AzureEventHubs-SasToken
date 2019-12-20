@@ -1,11 +1,11 @@
 <AssignMessage name='AM-KeyData'>
   <AssignVariable>
-    <Name>private.encodedkey</Name>
-    <!-- VerySecretPassphraseWillBeEncoded encoded in base64 -->
-    <Template>VmVyeVNlY3JldFBhc3NwaHJhc2VXaWxsQmVFbmNvZGVk</Template>
+    <Name>private.shared_access_key</Name>
+    <!-- normally this would be retrieved from encrypted KVM -->
+    <Template>VmVyeVNlY3JldFBhc3NwaHJhc2VXaWxsQmVFbmNvZGVk=</Template>
   </AssignVariable>
   <AssignVariable>
-    <Name>encodedkey_name</Name>
+    <Name>shared_access_key_name</Name>
     <Value>key1</Value>
   </AssignVariable>
 </AssignMessage>

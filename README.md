@@ -1,16 +1,63 @@
 # Azure Event Hubs SAS Token Callout
 
 This directory contains Java source code for a callout which produces a
-SAS token for Azure Event Hubs.  Also it includes a sample proxy.
+SAS token for Azure Event Hubs.  Also it includes a working sample proxy.
+
+## Background
+
+"SAS" refers to [Shared Access
+Signature](https://docs.microsoft.com/en-us/azure/event-hubs/authenticate-shared-access-signature),
+which is Microsoft's convention for applying [HMAC](https://en.wikipedia.org/wiki/HMAC), in
+other words a keyed-hash message authentication code, to produce a cryptographic
+signature for authentication purposes.
+
+HMAC is easy to compute in Apigee with the builtin features, like the HMAC
+policy and the hmac static function. But, the structure of Microsoft's token is
+not a simple HMAC. Instead it is a series of parameters (sr, se, skn, sig)
+encoded according to the `x-www-form-urlencoded` standard. An authorization
+header with a valid "token"
+looks like this:
+
+```
+Authorization:  SharedAccessSignature sr=https%3A%2F%2Fcontoso.servicebus.windows.net%2F&sig=aCmxWdfkSEOEEh7B8Ju3Wc32rxkuOcxK5YUFPaI%2BMCY%3D&se=1585172644&skn=key1
+```
+
+While producing an HMAC is _relatively straightforward_ in Apigee just using the
+builtin hmac capabilities and AssignMessage, assembling and encoding all of the
+pieces required by Microsoft for a SAS token can be sort of tedious. Therefore,
+I built this callout to aid in the assembly.
+
+The core of the Java logic is:
+```
+  Mac hmac = Mac.getInstance(hmacAlgorithm);
+  hmac.init(new SecretKeySpec(keyBytes, "HmacSHA256"));
+  String stringToSign = URLEncoder.encode(resourceUri, "UTF-8") + "\n" + expiry;
+  byte[] hmacBytes = hmac.doFinal(stringToSign.getBytes("UTF-8"));
+  String hmacB64 = new String(base64Encoder.encode(hmacBytes), "UTF-8");
+  
+  String sasToken =
+      String.format(
+          "SharedAccessSignature sr=%s&sig=%s&se=%d&skn=%s",
+          URLEncoder.encode(resourceUri, "UTF-8"),
+          URLEncoder.encode(hmacB64, "UTF-8"),
+          expiry,
+          keyName);
+```
+
+The rest of the callout code is built for getting and validating input, and setting output.
+
+## What's here?
+
+The points of interest here in this repository:
 
 - [Java source](./callout) - Java code, as well as instructions for how to build the Java code.
 - [example proxy](./example-bundle) - an example API Proxy for Apigee Edge that shows how to use the resulting Java callout.
 
-The API Proxy subdirectory here includes the pre-built JAR file. Therefore you
-do not need to build the Java code in order to use this callout. However, you
-may wish to modify this code for your own purposes. In that case, you will
-modify the Java code, re-build, then copy that JAR into the appropriate
-apiproxy/resources/java directory for the API Proxy.
+The API Proxy subdirectory here includes the pre-built JAR file. There are no
+other dependencies. Therefore you do not need to build the Java code in order to
+use this callout. However, you may wish to modify this code for your own
+purposes. In that case, you will modify the Java code, re-build, then copy that
+JAR into the appropriate `apiproxy/resources/java` directory for the API Proxy.
 
 ## Usage
 
@@ -42,9 +89,27 @@ Here's an example policy configuration:
 The key is the shared access key" provided by Azure, and typically looks something like this:
 `B1OrZzY26crAJcxXpyEIaqbs7qNLGWXuR9mDL4U7mC4=`
 
-The output is emitted into a context variable `sas.token`.  You can then use
-this token to build an authorization header appropriate for your eventhub
-service, like this:
+The output is emitted into a context variable `sas.token`.  The token will look
+like this:
+
+```
+ SharedAccessSignature sr=https%3A%2F%2Fcontoso.servicebus.windows.net%2F&sig=aCmxWdfkSEOEEh7B8Ju3Wc32rxkuOcxK5YUFPaI%2BMCY%3D&se=1585172644&skn=key1
+
+```
+
+The components of the token are:
+
+| component             | description      |
+|-----------------------|------------------|
+| SharedAccessSignature | fixed string.                                           |
+| sr                    | url-encoded URI address of the resource to be accessed. |
+| se                    | token expiry instant. expressed in seconds-since-epoch. |
+| skn                   | the SAS key name.                                       |
+| sig                   | the signature, the result of the HMAC.                  |
+
+
+You can then use the generated token to build an authorization header
+appropriate for your eventhub service, like this:
 
 ```
 <AssignMessage name='AM-1'>
@@ -61,6 +126,8 @@ service, like this:
 </AssignMessage>
 ```
 
+...and then you could use that in a ServiceCallout policy or to send to a proxy
+target.
 
 ## Policy Properties
 

@@ -42,7 +42,7 @@ public class SasCallout extends CalloutBase implements Execution {
   }
 
   private byte[] getKey(MessageContext msgCtxt) throws Exception {
-      byte[] keybytes = getByteArrayProperty(msgCtxt, "key");
+    byte[] keybytes = getByteArrayProperty(msgCtxt, "key");
     if (keybytes==null)
       throw new IllegalStateException("key resolves to null or empty.");
 
@@ -146,14 +146,11 @@ public class SasCallout extends CalloutBase implements Execution {
       int expiry = getExpiry(msgCtxt);
       String resourceUri = getResourceUri(msgCtxt);
       Mac hmac = Mac.getInstance(hmacAlgorithm);
-      SecretKeySpec key = new SecretKeySpec(keyBytes, hmacAlgorithm);
-      hmac.init(key);
+      hmac.init(new SecretKeySpec(keyBytes, hmacAlgorithm));
       String stringToSign =
           String.format("%s\n%d", URLEncoder.encode(resourceUri, "UTF-8"), expiry);
       byte[] hmacBytes = hmac.doFinal(stringToSign.getBytes("UTF-8"));
-
       String hmacB64 = new String(base64Encoder.encode(hmacBytes), "UTF-8");
-      // String sigB64Url = sigB64.replaceAll("\\+","-").replaceAll("\\/","_").replaceAll("=","");
 
       String sasToken =
           String.format(

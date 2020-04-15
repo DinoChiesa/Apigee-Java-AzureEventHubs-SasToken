@@ -1,3 +1,18 @@
+// Copyright 2019-2020 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package com.google.apigee.edgecallouts.azureeventhubs;
 
 import com.apigee.flow.execution.ExecutionContext;
@@ -8,8 +23,6 @@ import com.apigee.flow.message.MessageContext;
 import com.google.apigee.edgecallouts.CalloutBase;
 import com.google.apigee.encoding.Base16;
 import com.google.apigee.util.TimeResolver;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -43,8 +56,7 @@ public class SasCallout extends CalloutBase implements Execution {
 
   private byte[] getKey(MessageContext msgCtxt) throws Exception {
     byte[] keybytes = getByteArrayProperty(msgCtxt, "key");
-    if (keybytes==null)
-      throw new IllegalStateException("key resolves to null or empty.");
+    if (keybytes == null) throw new IllegalStateException("key resolves to null or empty.");
 
     return keybytes;
   }
@@ -69,8 +81,8 @@ public class SasCallout extends CalloutBase implements Execution {
 
     if (explicitReferenceTime != null) {
       int seconds = Integer.parseInt(explicitReferenceTime);
-      if (seconds < 0)throw new IllegalStateException("invalid expiry.");
-      referenceTime = Instant.ofEpochSecond(seconds );
+      if (seconds < 0) throw new IllegalStateException("invalid expiry.");
+      referenceTime = Instant.ofEpochSecond(seconds);
     }
     Instant expiry = referenceTime.plus(tokenLifetime, ChronoUnit.SECONDS);
     int expiryEpochSecond = (int) (expiry.getEpochSecond());
@@ -125,13 +137,6 @@ public class SasCallout extends CalloutBase implements Execution {
     return a;
   }
 
-  private static String getStackTraceAsString(Throwable t) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    t.printStackTrace(pw);
-    return sw.toString();
-  }
-
   public ExecutionResult execute(MessageContext msgCtxt, ExecutionContext exeCtxt) {
     try {
       boolean debug = getDebug();
@@ -139,8 +144,8 @@ public class SasCallout extends CalloutBase implements Execution {
       msgCtxt.removeVariable(varName("token"));
       byte[] keyBytes = getKey(msgCtxt);
       if (debug) {
-          msgCtxt.setVariable(varName("key.b16"), Base16.encode(keyBytes));
-          msgCtxt.setVariable(varName("key.b64"), base64Encoder.encodeToString(keyBytes));
+        msgCtxt.setVariable(varName("key.b16"), Base16.encode(keyBytes));
+        msgCtxt.setVariable(varName("key.b64"), base64Encoder.encodeToString(keyBytes));
       }
       String keyName = getKeyName(msgCtxt);
       int expiry = getExpiry(msgCtxt);

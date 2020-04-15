@@ -29,12 +29,12 @@ I built this callout to aid in the assembly.
 
 The core of the Java logic is:
 ```
-  Mac hmac = Mac.getInstance(hmacAlgorithm);
+  Mac hmac = Mac.getInstance("HmacSHA256");
   hmac.init(new SecretKeySpec(keyBytes, "HmacSHA256"));
   String stringToSign = URLEncoder.encode(resourceUri, "UTF-8") + "\n" + expiry;
   byte[] hmacBytes = hmac.doFinal(stringToSign.getBytes("UTF-8"));
   String hmacB64 = new String(base64Encoder.encode(hmacBytes), "UTF-8");
-  
+
   String sasToken =
       String.format(
           "SharedAccessSignature sr=%s&sig=%s&se=%d&skn=%s",
@@ -82,7 +82,7 @@ Here's an example policy configuration:
     <Property name="key-name">{shared_access_key_name}</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.azureeventhubs.SasCallout</ClassName>
-  <ResourceURL>java://apigee-azure-eventhubs-sas-callout-20191218.jar</ResourceURL>
+  <ResourceURL>java://apigee-azure-eventhubs-sas-callout-20200415.jar</ResourceURL>
 </JavaCallout>
 ```
 
@@ -99,8 +99,8 @@ like this:
 
 The components of the token are:
 
-| component             | description      |
-|-----------------------|------------------|
+| component             | description                                             |
+|-----------------------|---------------------------------------------------------|
 | SharedAccessSignature | fixed string.                                           |
 | sr                    | url-encoded URI address of the resource to be accessed. |
 | se                    | token expiry instant. expressed in seconds-since-epoch. |
@@ -172,7 +172,7 @@ mvn clean package
 
 ## License
 
-This code is Copyright (c) 2019 Google LLC, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
+This code is Copyright (c) 2019-2020 Google LLC, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
 
 ## Disclaimer
 

@@ -17,6 +17,8 @@ package com.google.apigee.edgecallouts;
 
 import com.apigee.flow.message.MessageContext;
 import com.google.apigee.util.CalloutUtil;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,6 +56,13 @@ public abstract class CalloutBase {
     msgCtxt.removeVariable(varName("error"));
     msgCtxt.removeVariable(varName("exception"));
     msgCtxt.removeVariable(varName("stacktrace"));
+  }
+
+  protected static String getStackTraceAsString(Throwable t) {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    t.printStackTrace(pw);
+    return sw.toString();
   }
 
   protected void setExceptionVariables(Exception exc1, MessageContext msgCtxt) {

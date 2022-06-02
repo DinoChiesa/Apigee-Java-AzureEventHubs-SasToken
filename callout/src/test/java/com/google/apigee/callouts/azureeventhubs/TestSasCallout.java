@@ -1,4 +1,4 @@
-package com.google.apigee.edgecallouts.azureeventhubs;
+package com.google.apigee.callouts.azureeventhubs;
 
 import com.apigee.flow.execution.ExecutionContext;
 import com.apigee.flow.execution.ExecutionResult;

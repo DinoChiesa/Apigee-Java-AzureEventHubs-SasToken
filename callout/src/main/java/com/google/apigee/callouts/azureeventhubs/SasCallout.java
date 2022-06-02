@@ -13,14 +13,14 @@
 // limitations under the License.
 //
 
-package com.google.apigee.edgecallouts.azureeventhubs;
+package com.google.apigee.callouts.azureeventhubs;
 
 import com.apigee.flow.execution.ExecutionContext;
 import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.execution.IOIntensive;
 import com.apigee.flow.execution.spi.Execution;
 import com.apigee.flow.message.MessageContext;
-import com.google.apigee.edgecallouts.CalloutBase;
+import com.google.apigee.callouts.CalloutBase;
 import com.google.apigee.encoding.Base16;
 import com.google.apigee.util.TimeResolver;
 import java.net.URLEncoder;

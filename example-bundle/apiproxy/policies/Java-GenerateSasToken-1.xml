@@ -6,6 +6,6 @@
     <Property name="key">{private.shared_access_key}</Property>
     <Property name="key-name">{shared_access_key_name}</Property>
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.azureeventhubs.SasCallout</ClassName>
+  <ClassName>com.google.apigee.callouts.azureeventhubs.SasCallout</ClassName>
   <ResourceURL>java://apigee-azure-eventhubs-sas-callout-20200415.jar</ResourceURL>
 </JavaCallout>

@@ -23,7 +23,7 @@ Authorization:  SharedAccessSignature sr=https%3A%2F%2Fcontoso.servicebus.window
 ```
 
 While producing an HMAC is _relatively straightforward_ in Apigee just using the
-builtin hmac capabilities and AssignMessage, assembling and encoding all of the
+builtin HMAC capabilities and AssignMessage, assembling and encoding all of the
 pieces required by Microsoft for a SAS token can be sort of tedious. Therefore,
 I built this callout to aid in the assembly.
 
@@ -63,9 +63,11 @@ JAR into the appropriate `apiproxy/resources/java` directory for the API Proxy.
 
 Deploy the proxy bundle, and the invoke it like this:
 ```
-ORG=myorg
-ENV=myenv
-curl -i https://$ORG-$ENV.apigee.net/azure-eventhubs-sastoken/token -X POST -d ''
+# Apigee Edge
+endpoint=https://$ORG-$ENV.apigee.net
+# Apigee X or hybrid
+endpoint=https://my-custom-endpoint.net
+curl -i $endpoint/azure-eventhubs-sastoken/token -X POST -d ''
 
 ```
 
@@ -81,12 +83,12 @@ Here's an example policy configuration:
     <Property name="key">{private.shared_access_key}</Property>
     <Property name="key-name">{shared_access_key_name}</Property>
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.azureeventhubs.SasCallout</ClassName>
+  <ClassName>com.google.apigee.callouts.azureeventhubs.SasCallout</ClassName>
   <ResourceURL>java://apigee-azure-eventhubs-sas-callout-20200415.jar</ResourceURL>
 </JavaCallout>
 ```
 
-The key is the shared access key" provided by Azure, and typically looks something like this:
+The key is the "shared access key" provided by Azure, and typically looks something like this:
 `B1OrZzY26crAJcxXpyEIaqbs7qNLGWXuR9mDL4U7mC4=`
 
 The output is emitted into a context variable `sas.token`.  The token will look
@@ -147,11 +149,10 @@ One thing I noticed: the signature generated from C# or Powershell code will be
 different than the signature generated from this Java callout. In fact, for a
 given combination of {uri, expiry, and key}, the signature produces by this Java
 callout matches that produced by the JavaScript and the Java code [on
-Microsoft's
-website](https://docs.microsoft.com/en-us/azure/event-hubs/authenticate-shared-access-signature). But
+Microsoft's website](https://docs.microsoft.com/en-us/azure/event-hubs/authenticate-shared-access-signature). But
 the signature generated from C# or Powershell will be different.
 
-The reason for the difference: URI
+Do not be alarmed, there is a simple reason for the difference: URI
 encoding in nodejs and Java produces a %2F (uppercase F) to encode the slash
 character, while .NET (C#, Powershell, etc) uses %2f (lowercase f). The RFC 3986
 says these encodings are equivalent, and they are treated as equivalent by
@@ -172,7 +173,7 @@ mvn clean package
 
 ## License
 
-This code is Copyright (c) 2019-2020 Google LLC, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
+This code is Copyright (c) 2019-2022 Google LLC, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
 
 ## Disclaimer
 
